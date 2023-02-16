@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title> VIGRO - ADMIN</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <meta content="" name="keywords">
+    <meta content="" name="description">
+
+   <body> 
+
+    
+    <div class="top"> 
+    
+        <a href="C:\xampp\htdocs\DBMS CASE STUDY\home.html"><img height="80px" width="100px" style="margin-left:30px; margin-top: 10px;" src="image\logo-removebg-preview (1).png"></a>
+          <h1 style="margin-left: 700px; margin-top:-60px ;">  HELLO ADMIN !</h1>
+          <div class="a" style="margin-top: -60px;">        <a style="margin-left: 1580px" href="home.html"> LOG OUT </a>
+        
+    </div>
+ <br><br>
+ <br><br> 
+    <div class="chart" style="width: 40%; height: 100%;">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js"></script>
+<br>
+<h2  style="margin-left: 20px; margin-top:20px;"> PROFIT </h2>
+<br><br>
+<canvas id="myChart" style="width:100%;max-width:600px;margin-left: 20px;"></canvas>
+<br>
+<script>
+var xValues = [50,60,70,80,90,100,110,120,130,140,150];
+var yValues = [7,8,8,9,9,9,10,11,14,14,15];
+
+new Chart("myChart", {
+  type: "line",
+  data: {
+    labels: xValues,
+    datasets: [{
+      fill: false,
+      lineTension: 0,
+      backgroundColor: "rgb(25, 28, 36)",
+      borderColor: "rgb(204, 23, 24)",
+      data: yValues
+    }]
+  },
+  options: {
+    legend: {display: false},
+    scales: {
+      yAxes: [{ticks: {min: 6, max:20}}],
+    }
+  }
+});
+</script>
+
+
+    </div>
+
+<div class="chart_1">
+    <br>
+<h2  style="margin-left: 20px; margin-top:20px;"> PRODUCT SALES </h2>
+<br><br>
+<canvas id="mChart" style="width:100%;max-width:600px;margin-left: 80px;"></canvas>
+<br>
+<script>
+var xValues = ["ORION® ", "Ascorp", "ASCORP", "WEILI", "QTYB"];
+var yValues = [55, 49, 44, 24, 15];  
+var barColors = [
+  "#b91d47",
+  "#00aba9",
+  "#2b5797",
+  "#e8c3b9",
+  "#1e7145"
+];
+
+new Chart("mChart", {
+  type: "pie",
+  data: {
+    labels: xValues,
+    datasets: [{
+      backgroundColor: barColors,
+      data: yValues
+    }]
+  },
+  options: {
+    title: {
+      display: true,
+      
+   
+    }
+  }
+});
+</script>
+
+
+</div>
+
+
+<div class="chart_2">
+
+
+
+</div>
+
+
+   </body> 
+
+
+<style>
+
+body{
+    background-color: white;
+    color: rgb(0, 0, 0);
+}
+ .top{
+    justify-content: center;
+    
+ }
+ .a a{
+    text-decoration: none;
+    color: rgb(204, 23, 24) ;
+ }
+ .chart{
+    /* background-color: rgb(25, 28, 36); */
+    margin-left: 100px;
+    border-radius: 10px;
+ }
+ .chart_1{
+    /* background-color: rgb(25, 28, 36); */
+    margin-left: 100px;
+    border-radius: 10px;
+    width: 45%;
+    height: 100%;
+    margin-left: 900px;
+    margin-top: -440px;
+
+ }
+ .chart_2{
+    /* background-color: rgb(25, 28, 36); */
+    margin-left: 100px;
+    border-radius: 10px;
+ }
+
+ 
+</style>
+
+
+
+<a href="http://localhost/DBMS%20CASE%20STUDY/products.php"> product details </a>
+
+
+<a href="http://localhost/DBMS%20CASE%20STUDY/view_orders.php"> Order history </a>
+</html>
+
+

@@ -1,0 +1,154 @@
+
+<style>
+
+	/*assign full width inputs*/
+	input[type=text],
+	input[type=password] {
+		width: 100%;
+		padding: 12px 20px;
+		margin: 8px 0;
+		display: inline-block;
+		border: 1px solid #ccc;
+		box-sizing: border-box;
+	}
+
+	
+
+	/*centre the display image inside the conntainerrr*/
+	.imgconntainerrr {
+		text-align: center;
+		margin: 24px 0 12px 0;
+		position: relative;
+	}
+
+	/*set image properties*/
+	img.avatar {
+		width: 40%;
+		border-radius: 50%;
+	}
+
+	/*set padding to the conntainerrr*/
+	.conntainerrr {
+		padding: 16px;
+	}
+	
+	/*set the forgot password text*/
+	span.psw {
+		float: right;
+		padding-top: 16px;
+	}
+
+	/*set the moodaal background*/
+	.moodaal {
+		display: none;
+		position: fixed;
+		z-index: 1;
+		left: 0;
+		top: 0;
+		width: 100%;
+		height: 100%;
+		overflow: auto;
+		background-color: rgb(0, 0, 0);
+		background-color: rgba(0, 0, 0, 0.4);
+		padding-top: 60px;
+	}
+
+	/*style the model content box*/
+	.moodaal-content {
+		background-color: #fefefe;
+		margin: 5% auto 15% auto;
+		border: 1px solid #888;
+		width: 80%;
+	}
+
+	/*style the close button*/
+	.close {
+		position: absolute;
+		right: 25px;
+		top: 0;
+		color: #000;
+		font-size: 35px;
+		font-weight: bold;
+	}
+	
+	.close:hover,
+	.close:focus {
+		color: red;
+		cursor: pointer;
+	}
+
+	/* add zoom animation*/
+	.animate {
+		-webkit-animation: animatezoom 0.6s;
+		animation: animatezoom 0.6s
+	}
+	
+	@-webkit-keyframes animatezoom {
+		from {
+			-webkit-transform: scale(0)
+		}
+		to {
+			-webkit-transform: scale(1)
+		}
+	}
+	
+	@keyframes animatezoom {
+		from {
+			transform: scale(0)
+		}
+		to {
+			transform: scale(1)
+		}
+	}
+	
+	@media screen and (max-width: 300px) {
+		span.psw {
+			display: block;
+			float: none;
+		}
+		.cancelbtn {
+			width: 100%;
+		}
+	}
+</style>
+
+
+
+
+
+	<div id="idd01" class="moodaal" >
+
+		<form class="moodaal-content animate" action="#" style="height:5x00px ; width: 400px; margin-left: 1200px ;">
+			<div class="imgconntainerrr">
+				<span onclick="document.getElementById('idd01').style.display='none'" class="close" title="Close moodaal">&times;</span>
+				<img src=
+"https://media.geeksforgeeks.org/wp-content/cdn-uploads/20190710102234/download3.png" alt="Avatar" class="avatar">
+			</div>
+
+			<div class="conntainerrr">
+				<label><b>Username</b></label>
+				<input type="text" placeholder="Enter Username" name="uname" required>
+
+				<label><b>Password</b></label>
+				<input type="password" placeholder="Enter Password" name="psw" required>
+
+				<button class="huuu" type="submit">Login</button>
+	
+			</div>
+
+			<div class="conntainerrr" style="background-color:#f1f1f1">
+				
+			<span class="">  <a href="#" style="margin-top: px;">register</a> </span>	
+            <span class="psw" style="margin-top: -13px;">Forgot <a href="#">password?</a></span>
+			</div>
+		</form>
+	</div>
+
+	<script>
+		var moodaal = document.getElementById('idd01');
+		window.onclick = function(event) {
+			if (event.target == moodaal) {
+				moodaal.style.display = "none";
+			}
+		}
+	</script>

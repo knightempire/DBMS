@@ -1,0 +1,23 @@
+/* ---------------------------------
+
+BEST VIEWED FULLSCREEN: 
+https://codepen.io/sdras/full/aavobB/
+
+-----------------------------------*/
+
+body {
+  background: #eef3f7; /* Old browsers */
+  background: -moz-linear-gradient(top, #eef3f7 0%, #eef3f7 27%, #a9cee8 100%); /* FF3.6-15 */
+  background: -webkit-linear-gradient(top, #eef3f7 0%,#eef3f7 27%,#a9cee8 100%); /* Chrome10-25,Safari5.1-6 */
+  background: linear-gradient(to bottom, #eef3f7 0%,#eef3f7 27%,#a9cee8 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#eef3f7', endColorstr='#a9cee8',GradientType=0 ); /* IE6-9 */
+}
+
+svg {
+  width: 100vw;
+  height: 100vh;
+}
+
+#words {
+  visibility: hidden;
+}
