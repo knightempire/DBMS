@@ -1,0 +1,615 @@
+//@TODO NOTIFICATIONS
+
+//---------
+// Vue components
+//---------
+Vue.component('products', {
+  
+  ready: function () {
+    var self = this;
+    document.addEventListener("keydown", function(e) {
+      if (self.showModal && e.keyCode == 37) {
+        self.changeProductInModal("prev");
+      } else if (self.showModal && e.keyCode == 39) {
+        self.changeProductInModal("next");
+      } else if (self.showModal && e.keyCode == 27) {
+        self.hideModal();
+      }
+    });
+  },
+
+  template: "<h1>Products</h1>" + 
+  "<div class='products'>" +
+  "<div v-for='product in productsData' track-by='$index' class='product {{ product.product | lowercase }}'>" + 
+  "<div class='image' @click='viewProduct(product)' v-bind:style='{ backgroundImage: \"url(\" + product.image + \")\" }' style='background-size: cover; background-position: center;'></div>" +
+  "<div class='name'>{{ product.product }}</div>" +
+  "<div class='description'>{{ product.description }}</div>" +
+  "<div class='price'>{{ product.price | currency }}</div>" +
+  "<button @click='addToCart(product)'>Add to Cart</button><br><br></div>" +
+  "</div>" +
+  "<div class='modalWrapper' v-show='showModal'>" +
+  "<div class='prevProduct' @click='changeProductInModal(\"prev\")'><i class='fa fa-angle-left'></i></div>" +
+  "<div class='nextProduct' @click='changeProductInModal(\"next\")'><i class='fa fa-angle-right'></i></div>" +
+  "<div class='overlay' @click='hideModal()'></div>" + 
+  "<div class='modal'>" + 
+  "<i class='close fa fa-times' @click='hideModal()'></i>" + 
+  "<div class='imageWrapper'><div class='image' v-bind:style='{ backgroundImage: \"url(\" + modalData.image + \")\" }' style='background-size: cover; background-position: center;' v-on:mouseover='imageMouseOver($event)' v-on:mousemove='imageMouseMove($event)' v-on:mouseout='imageMouseOut($event)'></div></div>" +
+  "<div class='additionalImages' v-if='modalData.images'>" + 
+  "<div v-for='image in modalData.images' class='additionalImage' v-bind:style='{ backgroundImage: \"url(\" + image.image + \")\" }' style='background-size: cover; background-position: center;' @click='changeImage(image.image)'></div>" +
+  "</div>" +
+  "<div class='name'>{{ modalData.product }}</div>" +
+  "<div class='description'>{{ modalData.description }}</div>" +
+  "<div class='details'>{{ modalData.details }}</div>" +
+  "<h3 class='price'>{{ modalData.price | currency }}</h3>" +
+  "<label for='modalAmount'>QTY</label>" +
+  "<input id='modalAmount' value='{{ modalAmount }}' v-model='modalAmount' class='amount' @keyup.enter='modalAddToCart(modalData), hideModal()'/>" +
+  "<button @click='modalAddToCart(modalData), hideModal()'>Add to Cart</button>" +
+  "</div></div>",
+
+  props: ['productsData', 'cart', 'tax', 'cartSubTotal', 'cartTotal'],
+
+  data: function() {
+    return {
+      showModal: false,
+      modalData: {},
+      modalAmount: 1,
+      timeout: "",
+      mousestop: ""
+    }
+  },
+
+  methods: {
+    addToCart: function(product) {
+      var found = false;
+
+      for (var i = 0; i < vue.cart.length; i++) {
+
+        if (vue.cart[i].sku === product.sku) {
+          var newProduct = vue.cart[i];
+          newProduct.quantity = newProduct.quantity + 1;
+          vue.cart.$set(i, newProduct);
+          //console.log("DUPLICATE",  vue.cart[i].product + "'s quantity is now: " + vue.cart[i].quantity);
+          found = true;
+          break;
+        }
+      }
+
+      if(!found) {
+        product.quantity = 1;
+        vue.cart.push(product);
+      }
+
+      vue.cartSubTotal = vue.cartSubTotal + product.price;
+      vue.cartTotal = vue.cartSubTotal + (vue.tax * vue.cartSubTotal);
+      vue.checkoutBool = true;
+    },
+
+    modalAddToCart: function(modalData) {
+      var self = this;
+
+      for(var i = 0; i < self.modalAmount; i++) {
+        self.addToCart(modalData);
+      }
+
+      self.modalAmount = 1;
+    },
+
+    viewProduct: function(product) {      
+      var self = this;
+      //self.modalData = product;
+      self.modalData = (JSON.parse(JSON.stringify(product)));
+      self.showModal = true;
+    },
+
+    changeProductInModal: function(direction) {
+      var self = this,
+          productsLength = vue.productsData.length,
+          currentProduct = self.modalData.sku,
+          newProductId,
+          newProduct;
+
+      if(direction === "next") {
+        newProductId = currentProduct + 1;
+
+        if(currentProduct >= productsLength) {
+          newProductId = 1;
+        }
+
+      } else if(direction === "prev") {
+        newProductId = currentProduct - 1;
+
+        if(newProductId === 0) {
+          newProductId = productsLength;
+        }
+      }
+
+      //console.log(direction, newProductId);
+
+      for (var i = 0; i < productsLength; i++) {
+        if (vue.productsData[i].sku === newProductId) {
+          self.viewProduct(vue.productsData[i]);
+        }
+      }
+    },
+
+    hideModal: function() {
+      //hide modal and empty modal data
+      var self = this;
+      self.modalData = {};
+      self.showModal = false;
+    },
+
+    changeImage: function(image) {
+      var self = this;
+      self.modalData.image = image;
+    },
+
+    imageMouseOver: function(event) {
+      event.target.style.transform = "scale(2)";
+    },
+
+    imageMouseMove: function(event) {
+      var self = this;
+      
+      event.target.style.transform = "scale(2)";
+      
+      self.timeout = setTimeout(function() {
+        event.target.style.transformOrigin = ((event.pageX - event.target.getBoundingClientRect().left) / event.target.getBoundingClientRect().width) * 100 + '% ' + ((event.pageY - event.target.getBoundingClientRect().top - window.pageYOffset) / event.target.getBoundingClientRect().height) * 100 + "%";
+      }, 50);
+      
+      self.mouseStop = setTimeout(function() {
+        event.target.style.transformOrigin = ((event.pageX - event.target.getBoundingClientRect().left) / event.target.getBoundingClientRect().width) * 100 + '% ' + ((event.pageY - event.target.getBoundingClientRect().top - window.pageYOffset) / event.target.getBoundingClientRect().height) * 100 + "%";
+      }, 100);
+    },
+
+    imageMouseOut: function(event) {
+      event.target.style.transform = "scale(1)";
+    }
+  }
+});
+
+Vue.component('cart', {
+  template: '<div class="cart">' + 
+  '<span class="cart-size" @click="showCart = !showCart"> {{ cart | cartSize }} </span><i class="fa fa-shopping-cart" @click="showCart = !showCart"></i>' +
+  '<div class="cart-items" v-show="showCart">' +
+  '<table class="cartTable">' +
+  '<tbody>' +
+  '<tr class="product" v-for="product in cart">' +
+  '<td class="align-left"><div class="cartImage" @click="removeProduct(product)" v-bind:style="{ backgroundImage: \'url(\' + product.image + \')\' }" style="background-size: cover; background-position: center;"><i class="close fa fa-times"></i></div></td>' +
+  '<td class="align-center"><button @click="quantityChange(product, \'decriment\')"><i class="close fa fa-minus"></i></button></td>' +
+  '<td class="align-center">{{ cart[$index].quantity }}</td>' +
+  '<td class="align-center"><button @click="quantityChange(product, \'incriment\')"><i class="close fa fa-plus"></i></button></td>' +
+  '<td class="align-center">{{ cart[$index] | customPluralize }}</td>' +
+  '<td>{{ product.price | currency }}</td>' +
+  '</tbody>' +
+  '<table>' +
+  '</div>' +
+  '<h4 class="cartSubTotal" v-show="showCart"> {{ cartSubTotal | currency }} </h4></div>' +
+  '<button class="clearCart" v-show="checkoutBool" @click="clearCart()"> Clear Cart </button>' +
+  '<button class="checkoutCart" v-show="checkoutBool" @click="propagateCheckout()"> Checkout </button>',
+
+  props: ['checkoutBool', 'cart', 'cartSize', 'cartSubTotal', 'tax', 'cartTotal'],
+
+  data: function() {
+    return {
+      showCart: false
+    }
+  },
+
+  filters: {
+    customPluralize: function(cart) {      
+      var newName;
+
+      if(cart.quantity > 1) {
+        if(cart.product === "Peach") {
+          newName = cart.product + "es";
+        } else if(cart.product === "Puppy") {
+          newName = cart.product + "ies";
+          newName = newName.replace("y", "");
+        } else {
+          newName = cart.product + "s";
+        }
+
+        return newName;
+      }
+
+      return cart.product;
+    },
+
+    cartSize: function(cart) {
+      var cartSize = 0;
+
+      for (var i = 0; i < cart.length; i++) {
+        cartSize += cart[i].quantity;
+      }
+
+      return cartSize;
+    }
+  },
+
+  methods: {
+    removeProduct: function(product) {
+      vue.cart.$remove(product);
+      vue.cartSubTotal = vue.cartSubTotal - (product.price * product.quantity);
+      vue.cartTotal = vue.cartSubTotal + (vue.tax * vue.cartSubTotal);
+
+      if(vue.cart.length <= 0) {
+        vue.checkoutBool = false;
+      }
+    },
+
+    clearCart: function() {
+      vue.cart = [];
+      vue.cartSubTotal = 0;
+      vue.cartTotal = 0;
+      vue.checkoutBool = false;
+      this.showCart = false;
+    },
+
+    quantityChange: function(product, direction) {
+      var qtyChange;
+
+      for (var i = 0; i < vue.cart.length; i++) {
+        if (vue.cart[i].sku === product.sku) {
+
+          var newProduct = vue.cart[i];
+
+          if(direction === "incriment") {
+            newProduct.quantity = newProduct.quantity + 1;
+            vue.cart.$set(i, newProduct);
+
+          } else {
+            newProduct.quantity = newProduct.quantity - 1;
+
+            if(newProduct.quantity == 0) {
+              vue.cart.$remove(newProduct);
+
+            } else {
+              vue.cart.$set(i, newProduct);
+            }
+          }
+        }
+      }
+
+      if(direction === "incriment") {
+        vue.cartSubTotal = vue.cartSubTotal + product.price;
+
+      } else {
+        vue.cartSubTotal = vue.cartSubTotal - product.price;
+      }
+
+      vue.cartTotal = vue.cartSubTotal + (vue.tax * vue.cartSubTotal);
+
+      if(vue.cart.length <= 0) {
+        vue.checkoutBool = false;
+      }
+    },
+    //send our request up the chain, to our parent
+    //our parent catches the event, and sends the request back down
+    propagateCheckout: function() {
+      vue.$dispatch("checkoutRequest");
+    }
+  }
+});
+
+Vue.component('checkout-area', {
+  template: "<h1>Checkout Area</h1>" + 
+  '<div class="checkout-area">' + 
+  '<span> {{ cart | cartSize }} </span><i class="fa fa-shopping-cart"></i>' +
+  '<table>' +
+  '<thead>' +
+  '<tr>' +
+  '<th class="align-center">SKU</th>' +
+  '<th>Name</th>' +
+  '<th>Description</th>' +
+  '<th class="align-right">Amount</th>' +
+  '<th class="align-right">Price</th>' +
+  '</tr>' +
+  '</thead>' +
+  '<tbody>' +
+  '<tr v-for="product in cart" track-by="$index">' +
+  '<td class="align-center">{{ product.sku }}</td>' +
+  '<td>{{ product.product }}</td>' +
+  '<td>{{ product.description }}</td>' +
+  '<td class="align-right">{{ cart[$index].quantity }}</td>' +
+  '<td class="align-right">{{ product.price | currency }}</td>' +
+  '</tr>' +
+  //'<button @click="removeProduct(product)"> X </button></div>' +
+  '<tr>' +
+  '<td>&nbsp;</td>' +
+  '<td>&nbsp;</td>' +
+  '<td>&nbsp;</td>' +
+  '<td>&nbsp;</td>' +
+  '<td>&nbsp;</td>' +
+  '</tr>' +
+  '<tr>' +
+  '<td></td>' +
+  '<td></td>' +
+  '<td></td>' +
+  '<td class="align-right">Subtotal:</td>' +
+  '<td class="align-right"><h4 v-if="cartSubTotal != 0"> {{ cartSubTotal | currency }} </h4></td>' +
+  '</tr>' +
+  '<tr>' +
+  '<td></td>' +
+  '<td></td>' +
+  '<td></td>' +
+  '<td class="align-right">Tax:</td>' +
+  '<td class="align-right"><h4 v-if="cartSubTotal != 0"> {{ cartTotal - cartSubTotal | currency }} </h4></td>' +
+  '</tr>' +
+  '<tr>' +
+  '<td></td>' +
+  '<td></td>' +
+  '<td></td>' +
+  '<td class="align-right vert-bottom">Total:</td>' +
+  '<td class="align-right vert-bottom"><h2 v-if="cartSubTotal != 0"> {{ cartTotal | currency }} </h2></td>' +
+  '</tr>' +
+  '</tbody>' +
+  '</table>' +
+  '<button v-show="cartSubTotal" @click="checkoutModal()">Checkout</button></div>' + 
+  "<div class='modalWrapper' v-show='showModal'>" +
+  "<div class='overlay' @click='hideModal()'></div>" + 
+  "<div class='modal checkout'>" + 
+  "<i class='close fa fa-times' @click='hideModal()'></i>" + 
+  "<h1>Checkout</h1>" +
+  "<div>We accept: <i class='fa fa-stripe'></i> <i class='fa fa-cc-visa'></i> <i class='fa fa-cc-mastercard'></i> <i class='fa fa-cc-amex'></i> <i class='fa fa-cc-discover'></i></div><br>" +
+  "<h3> Subtotal: {{ cartSubTotal | currency }} </h3>" +
+  "<h3> Tax: {{ cartTotal - cartSubTotal | currency }} </h4>" +
+  "<h1> Total: {{ cartTotal | currency }} </h3>" +
+  "<br><button onclick='myFunction()'>PAY</button>"+
+  "<br><div>This is where our payment processor goes</div>" +
+  "</div>",
+
+
+  
+  props: ['cart', 'cartSize', 'cartSubTotal', 'tax', 'cartTotal'],
+
+  data: function() {
+    return {
+      showModal: false
+    }
+  },
+
+  filters: {
+    customPluralize: function(cart) {      
+      var newName;
+
+      if(cart.quantity > 1) {
+        newName = cart.product + "s";
+        return newName;
+      }
+
+      return cart.product;
+    },
+
+    cartSize: function(cart) {
+      var cartSize = 0;
+
+      for (var i = 0; i < cart.length; i++) {
+        cartSize += cart[i].quantity;
+      }
+
+      return cartSize;
+    }
+  },
+
+  methods: {
+    removeProduct: function(product) {
+      vue.cart.$remove(product);
+      vue.cartSubTotal = vue.cartSubTotal - (product.price * product.quantity);
+      vue.cartTotal = vue.cartSubTotal + (vue.tax * vue.cartSubTotal);
+
+      if(vue.cart.length <= 0) {
+        vue.checkoutBool = false;
+      }
+    },
+
+    checkoutModal: function() {
+      var self = this;
+      self.showModal = true;
+
+      console.log("CHECKOUT", self.cartTotal);
+
+    },
+
+    hideModal: function() {
+      //hide modal and empty modal data
+      var self = this;
+      self.showModal = false;
+    }
+  },
+  
+  //intercept the checkout request broadcast
+  //run our function
+  events: {
+    "checkoutRequest": function() {
+      var self = this;
+      self.checkoutModal();
+    }
+  }
+});
+
+//---------
+// Vue init
+//---------
+Vue.config.debug = false;
+var vue = new Vue({
+  el: "#vue",
+
+  data: {
+    productsData: [
+      {
+        sku: 1,
+        product: "Cellular Endpoints",
+        image: "https://badgermeter.widen.net/content/eygpsywtic/jpeg/ORION%20Cellular%20LTE-M%20Endpoint%20%28low%20res%29.png?w=600&h=600&position=c&color=ffffffff&quality=80&u=rb73pf", 
+        // images: [
+        //   { image: "https://badgermeter.widen.net/content/eygpsywtic/jpeg/ORION%20Cellular%20LTE-M%20Endpoint%20%28low%20res%29.png?w=600&h=600&position=c&color=ffffffff&quality=80&u=rb73pf" },
+        //   { image: "https://s3-us-west-2.amazonaws.com/s.cdpn.io/241793/gorilla.jpg" },
+        //   { image: "https://s3-us-west-2.amazonaws.com/s.cdpn.io/241793/red-monkey.jpg" },
+        //   { image: "https://s3-us-west-2.amazonaws.com/s.cdpn.io/241793/mandrill-monkey.jpg" }
+        // ],
+        description: "ORION® Cellular endpoints",
+        details: "ORION® Cellular endpoints are an evolution in AMI technology, strengthened by the Network as a Service (NaaS) approach. The innovative endpoints utilize existing IoT (Internet of Things) cellular infrastructure to efficiently and securely accomplish two-way communication of meter reading data via the LTE-M cellular network.",
+        price: 5.50
+      },
+
+      {
+        sku: 2,
+        product: "20mm Ascorp",
+        image: "https://asmaindustrial.com/wp-content/uploads/2019/07/SM1.jpg",
+         images: [
+          { image: "https://asmaindustrial.com/wp-content/uploads/2019/07/SM1.jpg" },
+          { image: "https://asmaindustrial.com/wp-content/uploads/2019/07/SM2.jpg" },
+    
+          // { image: "https://s3-us-west-2.amazonaws.com/s.cdpn.io/241793/mandrill-monkey.jpg" }
+        ],
+        description: "ASCORP",
+        details: "Design : Single Jet; Battery life	12 Years ; Media :	Cold & Hot Water"  ,
+        price: 10
+      },
+
+      {
+        sku: 3,
+        product: "China high Quality smart home water meter",
+        image: "https://s.alicdn.com/@sc04/kf/HLB1eHqORIfpK1RjSZFOq6y6nFXao.jpg_280x280.jpg",
+        images: [
+          { image: "https://s.alicdn.com/@sc04/kf/HLB1eHqORIfpK1RjSZFOq6y6nFXao.jpg_280x280.jpg"},
+          { image: "https://s.alicdn.com/@sc04/kf/HLB1XYqHRFzqK1RjSZFCq6zbxVXaM.jpg_280x280.jpg" },
+          { image: "https://s.alicdn.com/@sc04/kf/HLB1I.SvRMDqK1RjSZSyq6yxEVXaP.jpg_280x280.jpg" },
+          { image: "https://s.alicdn.com/@sc04/kf/HLB1_biCRNTpK1RjSZFKq6y2wXXaC.jpg_280x280.jpg" },
+          { image: "https://s.alicdn.com/@sc04/kf/HLB1ZKSGRMHqK1RjSZFEq6AGMXXaa.jpg_280x280.jpg" }
+        ],
+        description: "WEILI",
+        details: " Single package size: 40X40X40 cm",
+        price: 15
+      },
+
+      {
+        sku: 4,
+        product: "wireless remote battery powered water flow meter",
+        image: "https://s.alicdn.com/@sc04/kf/H54c00addd7d648d1a051e62c80e06f7f6.png_280x280.jpg",
+        images: [
+          { image: "https://s.alicdn.com/@sc04/kf/H54c00addd7d648d1a051e62c80e06f7f6.png_280x280.jpg"},
+          { image: "https://s.alicdn.com/@sc04/kf/H15ae7fc411bb412091bbe08500a18ab6s.png_280x280.jpg" },
+          { image: "https://s.alicdn.com/@sc04/kf/H23d8f4f60a844882adb12f15ff96080bx.png_280x280.jpg" },
+          { image: "https://s.alicdn.com/@sc04/kf/Heb22142920ff48a18b764599957114866.png_280x280.jpg" },
+          { image: "https://s.alicdn.com/@sc04/kf/H2cae385dcbaf4ebda7428a6f0b924e14G.png_280x280.jpg" }
+        ],
+        description: "QTYB",
+        details: "SS304, carbon steel, 0.2% optional, 120x26x36",
+        price: 5
+      },
+
+      {
+        sku: 5,
+        product: "Kranti KBM-G1",
+        image: "https://asmaindustrial.com/wp-content/uploads/2019/08/Besto.jpg",
+       
+        description: "Kranti KBM-G1 Cold Water Flow Meter 15mm IP68 Multi Jet Magnetic Screwed End Class B",
+        details: " Drive :	Mechanical Drive with Stainless Steel Gears",
+        price: 1
+      },
+
+      {
+        sku: 6,
+        product: "SS304 stainless steel water flow meter electromagnetic flowmeter",
+        image: "https://s.alicdn.com/@sc04/kf/Hb60ac801067c405496617196970559c07.png_960x960.png",
+         images: [
+          { image: "https://s.alicdn.com/@sc04/kf/Hb60ac801067c405496617196970559c07.png_960x960.png"},
+          { image: "https://s.alicdn.com/@sc04/kf/H1b72e25b67d74263a88d4f0ca7bf94b0h.png_960x960.png" },
+          { image: "https://s.alicdn.com/@sc04/kf/Hdc2965b7b0294c57920d9b37eb1f37f2m.png_960x960.png" },
+          { image: "https://s.alicdn.com/@sc04/kf/Hbd5c97bdc32642dd8392bf14655ec340h.png_250x250.png" },
+          { image: "https://s.alicdn.com/@sc04/kf/H249c2dd1f4e24f19ac6dcd1239d408c1Y.png_250x250.png" }
+        ],
+        description: "Shengda",
+        details: "communaication:  RS485, RS232C, Modbus, Hart, Profibus-DP",
+    
+        price: 1.1
+      },
+    
+
+      {
+        sku: 7,
+        product: "Industrial type digital electromagnetic flow meter water price",
+        image: "https://s.alicdn.com/@sc04/kf/H05496ed5aa5048ef8ed55ef9769af28du.jpg_960x960.jpg",
+        images: [
+          { image: "https://s.alicdn.com/@sc04/kf/H05496ed5aa5048ef8ed55ef9769af28du.jpg_960x960.jpg"},
+          { image: "https://s.alicdn.com/@sc04/kf/Heb1ccff2f024432094e3d74c78055af9g.png_250x250.png" },
+          { image: "https://s.alicdn.com/@sc04/kf/Hab0c629eb4fa4f928cf5f3ce453853154.jpg_250x250.jpg" },
+          { image: "https://s.alicdn.com/@sc04/kf/H9717889af9cf48e9b1b3d2a5e1a0b9abO.jpg_250x250.jpg" },
+          { image: "https://s.alicdn.com/@sc04/kf/H9e7d60cf8d8b42e48aa7c20bdc928f9f6.png_250x250.png" },
+        
+        ],
+        description: "Shengda",
+        details: "  Communication:RS485, Modbus",
+        price: 1.5
+      },
+
+      {
+        sku: 8,
+        product: "Valve Controlled Wireless Remote Reading Smart Water Meter",
+        image: "https://s.alicdn.com/@sc04/kf/Hb945b484b8764462bd137b42e5727612v.jpg_250x250.jpg",
+        images: [
+          { image: "https://s.alicdn.com/@sc04/kf/Hb945b484b8764462bd137b42e5727612v.jpg_250x250.jpg"},
+          { image: "https://s.alicdn.com/@sc04/kf/H588d83e2d21f49b4a0c6f71e037896e5O.jpg_250x250.jpg" },
+          { image: "https://s.alicdn.com/@sc04/kf/Hfb37938a22934cfeaad3ea593e465c5cY.jpg_250x250.jpg" },
+          { image: "https://s.alicdn.com/@sc04/kf/H7d76fac9c55a4e3aa46cba1fd17b6dacW.jpg_250x250.jpg" },
+          { image: "https://s.alicdn.com/@sc04/kf/H9e7d60cf8d8b42e48aa7c20bdc928f9f6.png_250x250.png" },
+          { image: " https://s.alicdn.com/@sc04/kf/H6140ef2a496142d48c903572e9a23284c.jpg_250x250.jpg" },
+        ],
+        description: "Shengda",
+        details: " Model Number: LXSY-15~25E",
+        price: 2
+      },
+
+      {
+        sku: 9,
+        product: "Large Flow Marine Sea Water Pump 110-10000m3/h",
+        image: "https://s.alicdn.com/@sc04/kf/HTB12w4gbv5TBuNjSspmq6yDRVXaI.jpg_250x250.jpg",
+        images: [
+          { image: "https://s.alicdn.com/@sc04/kf/HTB12w4gbv5TBuNjSspmq6yDRVXaI.jpg_250x250.jpg"},
+          { image: "https://s.alicdn.com/@sc04/kf/HTB1_L36bmCWBuNjy0Fhq6z6EVXaS.jpg_250x250.jpg" },
+          { image: "https://s.alicdn.com/@sc04/kf/HTB1bYO7bDtYBeNjy1Xdq6xXyVXai.jpg_250x250.jpg" },
+          { image: "https://s.alicdn.com/@sc04/kf/HTB13ic1bXmWBuNjSspdq6zugXXaw.jpg_250x250.jpg" },
+          { image: "https://s.alicdn.com/@sc04/kf/HTB1K1ONbCtYBeNjSspaq6yOOFXaI.jpg_250x250.jpg" },
+          { image: "https://s.alicdn.com/@sc04/kf/HTB1B10gbACWBuNjy0Faq6xUlXXaG.jpg_250x250.jpg" },
+        ],
+        description: "An Pump",
+        details: " Model Number: QS China portable water pump set irrigation",
+        price: 17.38
+      },
+
+      {
+        sku: 10,
+        product: "QS high volume water pump large 100HP centrifugal pumping unit",
+        image: "https://s.alicdn.com/@sc04/kf/HTB1kKaroZyYBuNkSnfoq6AWgVXa0.jpg_250x250.jpg",
+        images: [
+          { image: "https://s.alicdn.com/@sc04/kf/HTB1kKaroZyYBuNkSnfoq6AWgVXa0.jpg_250x250.jpg"},
+          { image: "https://s.alicdn.com/@sc04/kf/HTB1Vwn2xeuSBuNjSsziq6zq8pXa0.jpg_250x250.jpg" },
+          { image: "https://s.alicdn.com/@sc04/kf/HTB1r_9AoZuYBuNkSmRyq6AA3pXaZ.jpg_250x250.jpg" },
+          { image: "https://s.alicdn.com/@sc04/kf/HTB19EsMxnlYBeNjSszcq6zwhFXa4.jpg_250x250.jpg" },
+          { image: "https://s.alicdn.com/@sc04/kf/HTB1FWKko5CYBuNkSnaVq6AMsVXaD.jpg_250x250.jpg" },
+          { image: "https://s.alicdn.com/@sc04/kf/HTB1Vh4VxDtYBeNjy1Xdq6xXyVXaC.jpg_250x250.jpg" },
+        ],
+        description: "Brand Name: An Pump",
+        details: " Model Number:QS pumping unit",
+        price: 17.38
+      }
+    ],
+    checkoutBool: false,
+    cart: [],
+    cartSubTotal: 0,
+    tax: 0.065,
+    cartTotal: 0
+  },
+  
+  //intercept the checkout request dispatch
+  //send it back down the chain
+  events: {
+    "checkoutRequest": function() {
+      vue.$broadcast("checkoutRequest");
+    }
+  }
+});
+function myFunction() {
+  alert("login error ")
+}
